@@ -8,7 +8,7 @@ To run this code, simply copy the code. In a terminal use PIP3 to install the de
 
 Once you have installed the dependencies simply run the file "main.py". In your terminal window, answer the questions asked:
 
-1) Which stock you want to predict.
+1) Which stock you want to predict. (e.g FB for Facebook...)
 2) How many previous days do you want to feed into the program as "training data".
 3) How many times you want your computer to train itself (epochs)
 
