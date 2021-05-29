@@ -4,26 +4,35 @@ import pandas as pd
 import pandas_datareader as web
 import datetime as dt
 
+from datetime import date
+from dateutil.relativedelta import relativedelta
+
+today = date.today()
+six_months_ago = date.today() - relativedelta(months=+6)
+
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential 
 from tensorflow.keras.layers import Dense, Dropout, LSTM
 
 # Loading Data
-company = "FB"
+print("Please Enter The Stock You Wish To Predict (FB = Facebook etc.)")
+company = input("")
 
-start = dt.datetime(2012,1,1)
-end = dt.datetime(2020,1,1)
+start = dt.datetime(2020, 11, 30)
+end = dt.datetime(2021, 5, 28)
 
 data = web.DataReader(company, "yahoo", start, end)
 
 # Prep Data
-scaler = MinMaxScaler(feature_range=(0,1))
-scaled_data = scaler.fit_transform(data["Close"].values.reshape(-1,1))
+scaler = MinMaxScaler(feature_range=(0, 1))
+scaled_data = scaler.fit_transform(data["Close"].values.reshape(-1, 1))
 
-prediction_days = 90
+print("How many days do you want to feed into the model?")
+prediction_days = int(input(""))
+
 
 x_train = []
-y_train= []
+y_train = []
 
 for x in range(prediction_days, len(scaled_data)):
     x_train.append(scaled_data[x-prediction_days:x, 0])
@@ -45,11 +54,14 @@ model.add(Dropout(0.2))
 model.add(Dense(units=1))
 
 model.compile(optimizer="adam", loss="mean_squared_error")
-model.fit(x_train, y_train, epochs=10, batch_size=32)
+
+print("How many times do you want to train the model?")
+train_days = int(input(""))
+model.fit(x_train, y_train, epochs=train_days, batch_size=32)
 
 
 # Testing Model Accuracy On Existing Data:
-test_start = dt.datetime(2020, 1, 1)
+test_start = dt.datetime(2019, 1, 1)
 test_end = dt.datetime.now()
 
 test_data = web.DataReader(company, 'yahoo', test_start, test_end)
@@ -74,16 +86,15 @@ x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
 
 predicted_prices = model.predict(x_test)
 predicted_prices = scaler.inverse_transform(predicted_prices)
-print(f'Predicted Test: {predicted_prices}')
 
-# Plot Test
+"""# Plot Test
 plt.plot(actual_prices, color="black", label=f'Actual {company} Price')
 plt.plot(predicted_prices, color="red", label=f'Predicted {company} Price')
 plt.title(f'{company} Share Price')
-plt.xlabel("Time")
+plt.xlabel(f"Test Data For Last : {prediction_days} Days")
 plt.ylabel(f'{company} Share Price')
 plt.show()
-plt.savefig("Test.png")
+plt.savefig("Test.png")"""
 
 # Predict Future
 real_data = [model_inputs[len(
@@ -91,15 +102,16 @@ real_data = [model_inputs[len(
 real_data = np.array(real_data)
 real_data = np.reshape(real_data, (real_data.shape[0], real_data.shape[1], 1))
 
-
-print(scaler.inverse_transform(real_data[-1]))
-
 prediction = model.predict(real_data)
 prediction = scaler.inverse_transform(prediction)
+
+plt.plot(actual_prices, color="black", label=f'Actual {company} Price')
+plt.plot(predicted_prices, color="red", label=f'Predicted {company} Price')
+plt.title(f'{company} Share Price')
+plt.xlabel(f"Data For Last : {prediction_days} Days")
+plt.ylabel(f'{company} Share Price')
+plt.show()
+plt.savefig("Full.png")
+
 print(f'Prediction: {prediction}')
-
-
-
-
-
 
